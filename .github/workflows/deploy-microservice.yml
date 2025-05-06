@@ -1,0 +1,76 @@
+name: Build and Deploy Microservice
+
+on:
+  workflow_call:
+    inputs:
+      service_name:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Build and push image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./${{ inputs.service_name }}/Dockerfile
+          push: true
+          tags: ${{ vars.ACR_NAME }}.azurecr.io/${{ inputs.service_name }}:${{ github.sha }}
+          
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          
+      - name: Set up kubelogin
+        uses: azure/use-kubelogin@v1
+        with:
+          kubelogin-version: 'v0.0.25'
+      
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: rg-prism-cluster-${{ inputs.environment }}
+          cluster-name: aks-prism-cluster-${{ inputs.environment }}
+      
+      - name: Render deployment template
+        uses: cschleiden/replace-tokens@v1
+        with:
+          files: ${{ inputs.service_name }}/deployment.yaml
+          tokenPrefix: '${'
+          tokenSuffix: '}'
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          ACR_NAME: ${{ vars.ACR_NAME }}
+          ENV: ${{ inputs.environment }}
+      
+      - name: Deploy to AKS
+        uses: Azure/k8s-deploy@v4
+        with:
+          namespace: sensors
+          manifests: ${{ inputs.service_name }}/deployment.yaml
+          images: ${{ vars.ACR_NAME }}.azurecr.io/${{ inputs.service_name }}:${{ github.sha }}
