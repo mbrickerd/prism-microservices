@@ -1,4 +1,4 @@
-name: Producer Service
+name: Producer Service CD
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - 'producer/**'
       - 'domain/**'
       - '.github/workflows/producer.yml'
-      
+
   workflow_dispatch:
     inputs:
       environment:
