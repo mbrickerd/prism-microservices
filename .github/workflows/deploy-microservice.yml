@@ -14,9 +14,6 @@ permissions:
   id-token: write
   contents: read
 
-env:
-  ARM_USE_OIDC: true
-
 jobs:
   build:
     name: Build
