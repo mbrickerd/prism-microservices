@@ -1,0 +1,27 @@
+name: Producer Service
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'producer/**'
+      - 'domain/**'
+      - '.github/workflows/producer.yml'
+      
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prd
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-microservice.yml
+    with:
+      service_name: producer
+      environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
