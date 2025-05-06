@@ -19,6 +19,10 @@ on:
           - dev
           - prd
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     uses: ./.github/workflows/deploy-microservice.yml
