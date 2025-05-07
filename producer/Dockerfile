@@ -8,14 +8,11 @@ RUN apt-get update && \
         python3-dev && \
     rm -rf /var/lib/apt/lists/*
 
-COPY domain/pyproject.toml domain/
 COPY producer/pyproject.toml producer/
 
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -e ./domain && \
     pip install --no-cache-dir -e ./producer
 
-COPY domain/ /app/domain/
 COPY producer/ /app/producer/
 
 FROM python:3.10-slim
@@ -26,7 +23,6 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY --from=builder /app/domain ./domain
 COPY --from=builder /app/producer ./producer
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
