@@ -58,33 +58,20 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           
+      # Set up kubelogin to handle modern AKS authentication
       - name: Set up kubelogin
         uses: azure/use-kubelogin@v1
         with:
           kubelogin-version: 'v0.0.25'
       
+      # Set AKS context with proper configuration for non-interactive authentication
       - name: Set AKS context
-        uses: azure/aks-set-context@v3
+        uses: azure/aks-set-context@v4
         with:
           resource-group: rg-prism-cluster-${{ inputs.environment }}
           cluster-name: aks-prism-cluster-${{ inputs.environment }}
           admin: 'false'
           use-kubelogin: 'true'
-      
-      # Add explicit step to get AKS credentials in non-interactive mode
-      - name: Get AKS credentials
-        run: |
-          az aks get-credentials \
-            --resource-group rg-prism-cluster-${{ inputs.environment }} \
-            --name aks-prism-cluster-${{ inputs.environment }} \
-            --overwrite-existing
-      
-      # Add explicit kubectl authentication step using Azure CLI's token
-      - name: Configure kubectl auth
-        run: |
-          TOKEN=$(az account get-access-token --query accessToken -o tsv)
-          kubectl config set-credentials azure-user --token=$TOKEN
-          kubectl config set-context --current --user=azure-user
 
       - name: Render deployment template
         uses: cschleiden/replace-tokens@v1
@@ -102,9 +89,12 @@ jobs:
           EVENTHUB_NAMESPACE: ${{ vars[format('EVENTHUB_NAMESPACE_{0}', env.ENV_UPPER)] }}
           KEY_VAULT_URL: ${{ vars[format('KEY_VAULT_URL_{0}', env.ENV_UPPER)] }}
       
+      # Use the official k8s-deploy action with proper configuration
       - name: Deploy to AKS
         uses: Azure/k8s-deploy@v4
         with:
           namespace: sensors
           manifests: ${{ inputs.service_name }}/deployment.yaml
           images: ${{ vars.ACR_NAME }}.azurecr.io/${{ inputs.service_name }}-${{ inputs.environment }}:${{ github.sha }}
+          action: deploy
+          strategy: basic
