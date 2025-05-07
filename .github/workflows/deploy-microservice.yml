@@ -28,7 +28,10 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           
-      
+      - name: ACR login
+        run: |
+          az acr login --name ${{ vars.ACR_NAME }}
+
       - name: Build and push image
         uses: docker/build-push-action@v4
         with:
