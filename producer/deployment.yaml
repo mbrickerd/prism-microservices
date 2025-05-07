@@ -16,8 +16,8 @@ spec:
         app: sensor-producer
         azure.workload.identity/use: "true"
       annotations:
-        azure.workload.identity/client-id: "${AZURE_CLIENT_ID}" # Client ID of your managed identity
-        azure.workload.identity/tenant-id: "${AZURE_TENANT_ID}" # Add tenant ID for extra validation
+        azure.workload.identity/client-id: "${MANAGED_IDENTITY_CLIENT_ID}"
+        azure.workload.identity/tenant-id: "${AZURE_TENANT_ID}"
     spec:
       serviceAccountName: sa-producer-prism-cluster-${ENV}
       securityContext:
@@ -47,7 +47,7 @@ spec:
             - name: KEY_VAULT_URL
               value: "${KEY_VAULT_URL}"
             - name: EVENTHUB_NAME
-              value: "sensors"
+              value: "${EVENTHUB_NAME}"
             - name: EVENTHUB_NAMESPACE
               value: "${EVENTHUB_NAMESPACE}"
             - name: NUM_SENSORS
