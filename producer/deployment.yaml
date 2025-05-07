@@ -19,14 +19,14 @@ spec:
         azure.workload.identity/client-id: "${AZURE_CLIENT_ID}" # Client ID of your managed identity
         azure.workload.identity/tenant-id: "${AZURE_TENANT_ID}" # Add tenant ID for extra validation
     spec:
-      serviceAccountName: sensor-producer-sa # Match with your federated credential
+      serviceAccountName: sa-producer-prism-cluster-${ENV}
       securityContext:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: sensor-producer
-          image: ${ACR_NAME}.azurecr.io/sensor-producer:${IMAGE_TAG}
+          image: ${ACR_NAME}.azurecr.io/sensor-producer-${ENV}:${IMAGE_TAG}
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
