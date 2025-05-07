@@ -38,7 +38,7 @@ jobs:
           context: .
           file: ./${{ inputs.service_name }}/Dockerfile
           push: true
-          tags: ${{ vars.ACR_NAME }}.azurecr.io/${{ inputs.service_name }}:${{ github.sha }}
+          tags: ${{ vars.ACR_NAME }}.azurecr.io/${{ inputs.service_name }}-${{ inputs.environment }}:${{ github.sha }}
           
   deploy:
     name: Deploy
@@ -68,7 +68,24 @@ jobs:
         with:
           resource-group: rg-prism-cluster-${{ inputs.environment }}
           cluster-name: aks-prism-cluster-${{ inputs.environment }}
+          admin: 'false'
+          use-kubelogin: 'true'
       
+      # Add explicit step to get AKS credentials in non-interactive mode
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group rg-prism-cluster-${{ inputs.environment }} \
+            --name aks-prism-cluster-${{ inputs.environment }} \
+            --overwrite-existing
+      
+      # Add explicit kubectl authentication step using Azure CLI's token
+      - name: Configure kubectl auth
+        run: |
+          TOKEN=$(az account get-access-token --query accessToken -o tsv)
+          kubectl config set-credentials azure-user --token=$TOKEN
+          kubectl config set-context --current --user=azure-user
+
       - name: Render deployment template
         uses: cschleiden/replace-tokens@v1
         with:
@@ -79,10 +96,15 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
           ACR_NAME: ${{ vars.ACR_NAME }}
           ENV: ${{ inputs.environment }}
+          MANAGED_IDENTITY_CLIENT_ID: ${{ vars[format('MANAGED_IDENTITY_CLIENT_ID_{0}', env.ENV_UPPER)] }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          EVENTHUB_NAME: ${{ vars[format('EVENTHUB_NAME_{0}', env.ENV_UPPER)] }}
+          EVENTHUB_NAMESPACE: ${{ vars[format('EVENTHUB_NAMESPACE_{0}', env.ENV_UPPER)] }}
+          KEY_VAULT_URL: ${{ vars[format('KEY_VAULT_URL_{0}', env.ENV_UPPER)] }}
       
       - name: Deploy to AKS
         uses: Azure/k8s-deploy@v4
         with:
           namespace: sensors
           manifests: ${{ inputs.service_name }}/deployment.yaml
-          images: ${{ vars.ACR_NAME }}.azurecr.io/${{ inputs.service_name }}:${{ github.sha }}
+          images: ${{ vars.ACR_NAME }}.azurecr.io/${{ inputs.service_name }}-${{ inputs.environment }}:${{ github.sha }}
