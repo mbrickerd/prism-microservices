@@ -68,7 +68,24 @@ jobs:
         with:
           resource-group: rg-prism-cluster-${{ inputs.environment }}
           cluster-name: aks-prism-cluster-${{ inputs.environment }}
+          admin: 'false'
+          use-kubelogin: 'true'
       
+      # Add explicit step to get AKS credentials in non-interactive mode
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group rg-prism-cluster-${{ inputs.environment }} \
+            --name aks-prism-cluster-${{ inputs.environment }} \
+            --overwrite-existing
+      
+      # Add explicit kubectl authentication step using Azure CLI's token
+      - name: Configure kubectl auth
+        run: |
+          TOKEN=$(az account get-access-token --query accessToken -o tsv)
+          kubectl config set-credentials azure-user --token=$TOKEN
+          kubectl config set-context --current --user=azure-user
+
       - name: Render deployment template
         uses: cschleiden/replace-tokens@v1
         with:
