@@ -38,7 +38,7 @@ jobs:
           context: .
           file: ./${{ inputs.service_name }}/Dockerfile
           push: true
-          tags: ${{ vars.ACR_NAME }}.azurecr.io/${{ inputs.service_name }}-${{ inputs.environment }}:${{ github.sha }}
+          tags: ${{ vars.ACR_NAME }}.azurecr.io/sensor-${{ inputs.service_name }}-${{ inputs.environment }}:${{ github.sha }}
           
   deploy:
     name: Deploy
@@ -95,6 +95,6 @@ jobs:
         with:
           namespace: sensors
           manifests: ${{ inputs.service_name }}/deployment.yaml
-          images: ${{ vars.ACR_NAME }}.azurecr.io/${{ inputs.service_name }}-${{ inputs.environment }}:${{ github.sha }}
+          images: ${{ vars.ACR_NAME }}.azurecr.io/sensor-${{ inputs.service_name }}-${{ inputs.environment }}:${{ github.sha }}
           action: deploy
           strategy: basic
