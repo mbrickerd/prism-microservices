@@ -29,10 +29,10 @@ class Config:
                     vault_url=key_vault_url, credential=self.credential
                 )
                 self.eventhub_connection_string = self._get_secret(
-                    secret_client, "eventhub-tst-connection-string"
+                    secret_client, "eventhub-connection-string"
                 )
                 self.storage_account_name = self._get_secret(
-                    secret_client, "storage-tst-account-name"
+                    secret_client, "storage-account-name"
                 )
 
                 logger.info("Successfully loaded secrets from Key Vault")
