@@ -1,6 +1,6 @@
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import (
-    BlobServiceClient, ContainerClient, PublicAccess, ContentSettings
+    BlobServiceClient, ContainerClient, ContentSettings
 )
 from azure.identity import DefaultAzureCredential
 from loguru import logger
@@ -38,7 +38,7 @@ class StorageService:
 
         except ResourceNotFoundError:
             container_client = self.blob_service_client.create_container(
-                self.container_name, public_access=PublicAccess.Container
+                self.container_name, public_access=None
             )
             logger.info(f"Container '{self.container_name}' has been created.")
 
