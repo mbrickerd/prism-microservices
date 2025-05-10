@@ -100,11 +100,10 @@ class SensorDataProducer:
             )
 
         else:
-            credential = DefaultAzureCredential()
             self.producer_client = EventHubProducerClient(
-                fully_qualified_namespace=f"{config.eventhub_namespace}.servicebus.windows.net",
+                fully_qualified_namespace=config.eventhub_namespace,
                 eventhub_name=config.eventhub_name,
-                credential=credential,
+                credential=DefaultAzureCredential(),
             )
 
         self.machine_id = str(uuid4())[:8]
