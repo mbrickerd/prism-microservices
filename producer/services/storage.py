@@ -4,7 +4,6 @@ from azure.storage.blob import (
 )
 from azure.identity import DefaultAzureCredential
 from loguru import logger
-from typing import Optional, Union, List
 
 
 class StorageService:
@@ -44,7 +43,7 @@ class StorageService:
 
         return container_client
 
-    def read_blob(self, blob_name: str, binary: bool) -> Union[str, bytes]:
+    def read_blob(self, blob_name: str, binary: bool) -> str | bytes:
         blob_client = self.container_client.get_blob_client(blob_name)
         blob_content = blob_client.download_blob()
 
@@ -74,7 +73,7 @@ class StorageService:
             logger.error(f"Failed to upload content to blob '{blob_name}': {err}")
             raise
 
-    def list_blobs(self, prefix: Optional[str] = None) -> List[str]:
+    def list_blobs(self, prefix: str | None = None) -> list[str]:
         return [
             blob.name
             for blob in self.container_client.list_blobs(name_starts_with=prefix)
