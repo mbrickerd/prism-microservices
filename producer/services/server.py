@@ -10,7 +10,7 @@ import threading
 import time
 import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import Any, Type, ClassVar, Union
+from typing import Any, Type, ClassVar
 from prometheus_client import start_http_server
 from loguru import logger
 
@@ -29,7 +29,7 @@ class HealthHandler(BaseHTTPRequestHandler):
         `server_service`: Reference to the server service that created this handler
     """
     
-    server_service: ClassVar[Union['ServerService', None]] = None
+    server_service: ClassVar['ServerService' | None] = None
     
     def do_GET(self) -> None:
         """
@@ -93,7 +93,7 @@ class HealthHandler(BaseHTTPRequestHandler):
     
     def log_message(self, format: str, *args: Any) -> None:
         """Override to use loguru instead of stderr."""
-        if not self.path == '/health':  # Don't log frequent health checks
+        if not self.path == '/health':
             logger.debug(f"Health server: {format % args}")
 
 
@@ -114,7 +114,7 @@ class ServerService:
     """
     
     # Global singleton instance
-    _instance: Union['ServerService', None] = None
+    _instance: 'ServerService' | None = None
     _instance_lock = threading.Lock()
     
     @classmethod
@@ -150,8 +150,8 @@ class ServerService:
         """
         self.health_port = health_port
         self.metrics_port = metrics_port
-        self.server: Union[HTTPServer, None] = None
-        self.server_thread: Union[threading.Thread, None] = None
+        self.server: HTTPServer | None = None
+        self.server_thread: threading.Thread | None = None
         self.is_running = False
         self.start_time: float = 0.0
     

@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sensor-domain"
+version = "0.1.0"
+description = "Domain models for sensor failure detection system"
+requires-python = ">=3.10"
+dependencies = [
+    "motor>=3.3.0",
+    "pymongo>=4.5.0",
+    "pydantic>=2.4.0", 
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["domain*"]
+exclude = []
